@@ -1,3 +1,17 @@
+// Copyright 2023 shadow3aaa@gitbub.com
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
 use std::time::Duration;
 
 use likely_stable::unlikely;
@@ -34,7 +48,6 @@ pub fn pid_control(
     Some(
         pid_control_inner(
             pid_params,
-            buffer.avg_time * target_fps,
             frame,
             target,
             buffer.frametimes.iter().copied().take(30).sum::<Duration>() * target_fps,
@@ -46,7 +59,6 @@ pub fn pid_control(
 
 fn pid_control_inner(
     pid_params: PidParams,
-    avg_time: Duration,
     current_frametime: Duration,
     target_frametime: Duration,
     last_30_frametimes_sum: Duration,
@@ -57,15 +69,9 @@ fn pid_control_inner(
     let error_i = (target_frametime.as_nanos() as f64)
         .mul_add(-30.0, last_30_frametimes_sum.as_nanos() as f64)
         * pid_params.ki;
-    let mut error_d = (last_30_frametimes_sum.as_nanos() as f64)
+    let error_d = (last_30_frametimes_sum.as_nanos() as f64)
         .mul_add(2.0, -(last_60_frametimes_sum.as_nanos() as f64))
         * pid_params.kd;
-
-    if avg_time > target_frametime {
-        error_d = error_d.max(0.0);
-    } else {
-        error_d = error_d.min(0.0);
-    }
 
     #[cfg(debug_assertions)]
     {

@@ -1,6 +1,21 @@
-use std::{collections::VecDeque, time::Duration};
+// Copyright 2023 shadow3aaa@gitbub.com
+//
+// Licensed under the Apache License, Version 2.0 (the "License");
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//     http://www.apache.org/licenses/LICENSE-2.0
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+use std::time::Duration;
 
 use anyhow::Result;
+use likely_stable::unlikely;
 use rand::Rng;
 use rusqlite::{params, Connection};
 
@@ -54,22 +69,16 @@ pub fn save_pid_params(conn: &Connection, package_name: &str, pid_params: PidPar
 pub fn mutate_params(params: PidParams) -> PidParams {
     let mut rng = rand::thread_rng();
     PidParams {
-        kp: (params.kp + rng.gen_range(-0.000_01..0.000_01)).clamp(0.000_1, 0.000_8),
-        ki: (params.ki + rng.gen_range(-0.000_001..0.000_001)).clamp(0.000_01, 0.000_08),
-        kd: (params.kd + rng.gen_range(-0.000_000_1..0.000_000_1)).clamp(0.000_001, 0.000_008),
+        kp: (params.kp + rng.gen_range(-0.000_1..0.000_1)).clamp(0.000_4, 0.000_8),
+        ki: (params.ki + rng.gen_range(-0.000_01..0.000_01)).clamp(0.000_015, 0.000_08),
+        kd: (params.kd + rng.gen_range(-0.000_01..0.000_01)).clamp(0.000_05, 0.000_08),
     }
 }
 
-pub fn evaluate_fitness(
-    buffer: &Buffer,
-    config: &mut Config,
-    mode: Mode,
-    control_history: &VecDeque<isize>,
-) -> Option<f64> {
+pub fn evaluate_fitness(buffer: &Buffer, config: &mut Config, mode: Mode) -> Option<f64> {
     let target_fps = buffer.target_fps?;
 
-    if buffer.frametimes.len() < (target_fps * 5).try_into().unwrap() || control_history.len() < 30
-    {
+    if unlikely(buffer.frametimes.len() < target_fps.try_into().unwrap()) {
         return None;
     }
 
@@ -86,14 +95,6 @@ pub fn evaluate_fitness(
         .sum::<f64>()
         / buffer.frametimes.len() as f64
         * -1.0;
-    let fitness_control = control_history
-        .iter()
-        .copied()
-        .map(|control| (control as f64).powi(2))
-        .sum::<f64>()
-        / control_history.len() as f64
-        * -1.0
-        * 0.01;
 
-    Some(fitness_frametime + fitness_control)
+    Some(fitness_frametime)
 }
