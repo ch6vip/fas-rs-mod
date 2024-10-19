@@ -17,27 +17,32 @@ mod cpu_info;
 use std::{
     collections::HashMap,
     fs,
-    sync::{atomic::AtomicIsize, OnceLock},
+    sync::{
+        atomic::{AtomicBool, AtomicIsize},
+        OnceLock,
+    },
+    thread,
+    time::Duration,
 };
 
 use anyhow::Result;
 use cpu_info::Info;
 #[cfg(debug_assertions)]
 use log::debug;
-use log::error;
+use log::{error, warn};
 
 use crate::{
-    api::{v1::ApiV1, v2::ApiV2, ApiV0},
+    api::{v1::ApiV1, v2::ApiV2, v3::ApiV3, ApiV0},
     file_handler::FileHandler,
     Extension,
 };
 
 pub static OFFSET_MAP: OnceLock<HashMap<i32, AtomicIsize>> = OnceLock::new();
+pub static IGNORE_MAP: OnceLock<HashMap<i32, AtomicBool>> = OnceLock::new();
 
 #[derive(Debug)]
 pub struct Controller {
     max_freq: isize,
-    min_freq: isize,
     policy_freq: isize,
     cpu_infos: Vec<Info>,
     file_handler: FileHandler,
@@ -56,7 +61,19 @@ impl Controller {
                         .unwrap()
                         .starts_with("policy")
             })
-            .map(|path| Info::new(path).unwrap())
+            .map(|path| loop {
+                match Info::new(&path) {
+                    Ok(info) => {
+                        return info;
+                    }
+                    Err(e) => {
+                        warn!("Failed to read cpu info from: {path:?}, reason: {e:#?}");
+                        warn!("Retrying...");
+                        thread::sleep(Duration::from_secs(1));
+                        continue;
+                    }
+                }
+            })
             .collect();
 
         cpu_infos.sort_by_key(|cpu| cpu.policy);
@@ -65,6 +82,12 @@ impl Controller {
             cpu_infos
                 .iter()
                 .map(|cpu| (cpu.policy, AtomicIsize::new(0)))
+                .collect()
+        });
+        IGNORE_MAP.get_or_init(|| {
+            cpu_infos
+                .iter()
+                .map(|cpu| (cpu.policy, AtomicBool::new(false)))
                 .collect()
         });
 
@@ -78,16 +101,8 @@ impl Controller {
             .copied()
             .unwrap();
 
-        let min_freq = cpu_infos
-            .iter()
-            .flat_map(|info| info.freqs.iter())
-            .min()
-            .copied()
-            .unwrap();
-
         Ok(Self {
             max_freq,
-            min_freq,
             policy_freq: max_freq,
             cpu_infos,
             file_handler: FileHandler::new(),
@@ -99,6 +114,7 @@ impl Controller {
         extension.trigger_extentions(ApiV0::InitCpuFreq);
         extension.trigger_extentions(ApiV1::InitCpuFreq);
         extension.trigger_extentions(ApiV2::InitCpuFreq);
+        extension.trigger_extentions(ApiV3::InitCpuFreq);
 
         for cpu in &self.cpu_infos {
             cpu.write_freq(self.max_freq, &mut self.file_handler)
@@ -111,6 +127,7 @@ impl Controller {
         extension.trigger_extentions(ApiV0::ResetCpuFreq);
         extension.trigger_extentions(ApiV1::ResetCpuFreq);
         extension.trigger_extentions(ApiV2::ResetCpuFreq);
+        extension.trigger_extentions(ApiV3::ResetCpuFreq);
 
         for cpu in &mut self.cpu_infos {
             cpu.reset_freq(&mut self.file_handler)

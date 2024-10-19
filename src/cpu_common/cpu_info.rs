@@ -12,11 +12,15 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-use std::{fs, path::PathBuf, sync::atomic::Ordering};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    sync::atomic::Ordering,
+};
 
 use anyhow::Result;
 
-use super::OFFSET_MAP;
+use super::{IGNORE_MAP, OFFSET_MAP};
 use crate::file_handler::FileHandler;
 
 #[derive(Debug)]
@@ -28,7 +32,8 @@ pub struct Info {
 }
 
 impl Info {
-    pub fn new(path: PathBuf) -> Result<Self> {
+    pub fn new(path: impl AsRef<Path>) -> Result<Self> {
+        let path = path.as_ref();
         let policy = path.file_name().unwrap().to_str().unwrap()[6..].parse()?;
 
         let cpus: Vec<i32> = fs::read_to_string(path.join("affected_cpus"))?
@@ -46,7 +51,7 @@ impl Info {
         Ok(Self {
             policy,
             cpus,
-            path,
+            path: path.to_path_buf(),
             freqs,
         })
     }
@@ -68,7 +73,14 @@ impl Info {
 
         let freq = freq.to_string();
 
-        if self.policy != 0 {
+        if self.policy != 0
+            && !IGNORE_MAP
+                .get()
+                .unwrap()
+                .get(&self.policy)
+                .unwrap()
+                .load(Ordering::Acquire)
+        {
             file_handler.write_with_workround(max_freq_path, &freq)?;
             file_handler.write_with_workround(min_freq_path, &freq)?;
         }
