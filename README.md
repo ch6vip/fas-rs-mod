@@ -1,4 +1,4 @@
-# **fas-rs**
+# **fas-rs-mod**
 
 [![English][readme-en-badge]][readme-en-url]
 [![Stars][stars-badge]][stars-url]
@@ -41,12 +41,6 @@
     - `true`: 永远在配置合并时保持标准配置的 profile，保留本地配置的应用列表，其它地方和 false 相同 \*
     - `false`: 见[配置合并的默认行为](#配置合并)
 
-  - **scene_game_list**
-
-    - 类型: `bool`
-    - `true`: 使用 scene 游戏列表
-    - `false`: 不使用 scene 游戏列表
-
   - `*`: 默认配置
 
 - ### **游戏列表(`game_list`)说明:**
@@ -56,11 +50,11 @@
     - `package`: 字符串，应用包名
     - `target_fps`: 一个数组(如`[30，60，120，144]`)或者单个整数，表示游戏会渲染到的目标帧率，`fas-rs`会在运行时动态匹配
 
-- ### **模式(`powersave` / `balance` / `performance` / `fast`)说明:**
+- ### **模式(`powersave` / `balance` / `performance` / `fast` / `pedestal`)说明:**
 
   - **mode:**
-    - 目前`fas-rs`还没有官方的切换模式的管理器，而是接入了[`scene`](http://vtools.omarea.com)的配置接口，如果你不用 scene 则默认使用`balance`的配置
-    - 如果你有在 linux 上编程的一些了解，向`/dev/fas_rs/mode`节点写入 4 模式中的任意一个即可切换到对应模式，同时读取它也可以知道现在`fas-rs`所处的模式
+    - `fas-rs-mod`依赖于[`scene`](http://vtools.omarea.com)的配置接口,通过修补scene配置文件，实现`fas-rs`与`scene`一同工作
+    - 如果你有在 linux 上编程的一些了解，向`/dev/fas_rs/mode`节点写入 5 模式中的任意一个即可切换到对应模式，同时读取它也可以知道现在`fas-rs`所处的模式
   - **模式参数说明:**
     - margin(ms): 允许的掉帧余量，越小帧率越高，越大越省电(0 < margin < 1000)
 
@@ -69,29 +63,23 @@
 ```toml
 [config]
 keep_std = true
-scene_game_list = true
 
 [game_list]
-"com.hypergryph.arknights" = [30, 60]
-"com.miHoYo.Yuanshen" = [30, 60]
-"com.miHoYo.enterprise.NGHSoD" = [30, 60, 90]
-"com.miHoYo.hkrpg" = [30, 60]
-"com.mojang.minecraftpe" = [60, 120]
-"com.netease.party" = [30, 60]
-"com.shangyoo.neon" = 60
-"com.tencent.tmgp.pubgmhd" = [60, 90, 120]
-"com.tencent.tmgp.sgame" = [30, 60, 90, 120]
+"example.game" = [30, 60, 90, 120]
 
 [powersave]
-margin = 4
+margin = 5
 
 [balance]
-margin = 3
+margin = 4
 
 [performance]
-margin = 2
+margin = 3
 
 [fast]
+margin = 2
+
+[pedestal]
 margin = 1
 ```
 
