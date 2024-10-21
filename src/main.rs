@@ -25,7 +25,6 @@
 mod cpu_common;
 mod file_handler;
 mod framework;
-mod misc;
 
 use std::{
     env, fs,
@@ -44,7 +43,6 @@ use mimalloc::MiMalloc;
 use log::debug;
 
 use cpu_common::Controller;
-use misc::setprop;
 
 #[global_allocator]
 static GLOBAL: MiMalloc = MiMalloc;
@@ -63,7 +61,6 @@ fn main() -> Result<()> {
 
         return Ok(());
     } else if args[1] == "run" {
-        setprop("fas-rs-server-started", "true");
         run(&args[2]).unwrap_or_else(|e| error!("{e:#?}"));
     }
 
