@@ -29,6 +29,7 @@ pub struct ConfigData {
     pub balance: ModeConfig,
     pub performance: ModeConfig,
     pub fast: ModeConfig,
+    pub pedestal: ModeConfig,
 }
 
 #[allow(clippy::struct_excessive_bools)]
@@ -36,8 +37,6 @@ pub struct ConfigData {
 pub struct Config {
     #[serde(default = "Config::default_value_keep_std")]
     pub keep_std: bool,
-    #[serde(default = "Config::default_value_userspace_governor")]
-    pub userspace_governor: bool,
     #[serde(default = "Config::default_value_scene_game_list")]
     pub scene_game_list: bool,
 }

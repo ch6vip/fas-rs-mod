@@ -120,6 +120,7 @@ impl Config {
             Mode::Balance => self.inner.config().balance,
             Mode::Performance => self.inner.config().performance,
             Mode::Fast => self.inner.config().fast,
+            Mode::Pedestal => self.inner.config().pedestal,
         }
     }
 
