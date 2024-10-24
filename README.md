@@ -59,7 +59,7 @@
     - `fas-rs-mod`依赖于[`scene`](http://vtools.omarea.com)的配置接口,通过修补scene配置文件，实现`fas-rs`与`scene`一同工作
     - 如果你有在 linux 上编程的一些了解，向`/dev/fas_rs/mode`节点写入 5 模式中的任意一个即可切换到对应模式，同时读取它也可以知道现在`fas-rs`所处的模式
   - **模式参数说明:**
-    - margin(ms): 允许的掉帧余量，越小帧率越高，越大越省电(0 < margin < 1000)
+    - margin(ms): 允许的掉帧余量，越小帧率越高，越大越省电(0 <= margin < 1000)
 
 ### **`games.toml`配置标准例:**
 
