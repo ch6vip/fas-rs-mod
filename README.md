@@ -3,22 +3,16 @@
 [![English][readme-en-badge]][readme-en-url]
 [![Stars][stars-badge]][stars-url]
 [![CI Build][ci-badge]][ci-url]
-[![Release][release-badge]][release-url]
-[![Download][download-badge]][download-url]
 [![Telegram][telegram-badge]][telegram-url]
 
 [readme-en-badge]: https://img.shields.io/badge/README-English-blue.svg?style=for-the-badge&logo=readme
 [readme-en-url]: README_EN.md
-[stars-badge]: https://img.shields.io/github/stars/shadow3aaa/fas-rs?style=for-the-badge&logo=github
-[stars-url]: https://github.com/shadow3aaa/fas-rs
-[ci-badge]: https://img.shields.io/github/actions/workflow/status/shadow3aaa/fas-rs/ci.yml?style=for-the-badge&label=CI%20Build&logo=githubactions
-[ci-url]: https://github.com/shadow3aaa/fas-rs/actions/workflows/ci.yml
-[release-badge]: https://img.shields.io/github/v/release/shadow3aaa/fas-rs?style=for-the-badge&logo=rust
-[release-url]: https://github.com/shadow3aaa/fas-rs/releases/latest
-[download-badge]: https://img.shields.io/github/downloads/shadow3aaa/fas-rs/total?style=for-the-badge
-[download-url]: https://github.com/shadow3aaa/fas-rs/releases/latest
+[stars-badge]: https://img.shields.io/github/stars/DdogezD/fas-rs-mod?style=for-the-badge&logo=github
+[stars-url]: https://github.com/DdogezD/fas-rs-mod
+[ci-badge]: https://img.shields.io/github/actions/workflow/status/DdogezD/fas-rs-mod/ci.yml?style=for-the-badge&label=CI%20Build&logo=githubactions
+[ci-url]: https://github.com/DdogezD/fas-rs-mod/actions/workflows/ci.yml
 [telegram-badge]: https://img.shields.io/badge/Group-blue?style=for-the-badge&logo=telegram&label=Telegram
-[telegram-url]: https://t.me/fas_rs_official
+[telegram-url]: https://t.me/fas_rs_mod
 
 ## **简介**
 
@@ -27,6 +21,10 @@
 - ### **什么是`fas-rs`?**
 
   - `fas-rs`是运行在用户态的`FAS(Frame Aware Scheduling)`实现，对比核心思路一致但是在内核态的`MI FEAS`有着近乎在任何设备通用的兼容性和灵活性方面的优势
+
+- ### **什么是`fas-rs-mod`?**
+
+  - `fas-rs-mod`是通过修补`scene`配置文件，使`fas-rs`与`scene`一同工作的`fas-rs`修改版
 
 ## **插件系统**
 
