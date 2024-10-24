@@ -71,16 +71,16 @@ keep_std = true
 "example.game" = [30, 60, 90, 120]
 
 [powersave]
-margin = 5
+margin = 6
 
 [balance]
 margin = 4
 
 [performance]
-margin = 3
+margin = 2
 
 [fast]
-margin = 2
+margin = 0
 
 [pedestal]
 margin = 1
