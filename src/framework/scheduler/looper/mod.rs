@@ -98,8 +98,13 @@ struct FasState {
     buffer: Option<Buffer>,
 }
 
-pub struct Looper {
+struct AnalyzerState {
     analyzer: Analyzer,
+    restart_counter: u8,
+}
+
+pub struct Looper {
+    analyzer_state: AnalyzerState,
     cpu_temp_watcher: CpuTempWatcher,
     config: Config,
     node: Node,
@@ -122,7 +127,10 @@ impl Looper {
         controller: Controller,
     ) -> Self {
         Self {
-            analyzer,
+            analyzer_state: AnalyzerState {
+                analyzer,
+                restart_counter: 0,
+            },
             cpu_temp_watcher,
             config,
             node,
@@ -182,7 +190,16 @@ impl Looper {
                 #[cfg(debug_assertions)]
                 debug!("janked: {}", self.fas_state.janked);
                 buffer.additional_frametime(&self.extension);
-                self.do_policy();
+
+                match buffer.state.working_state {
+                    BufferWorkingState::Unusable => {
+                        self.restart_analyzer();
+                        self.disable_fas();
+                    }
+                    BufferWorkingState::Usable => {
+                        self.do_policy();
+                    }
+                }
             }
         }
     }
@@ -215,7 +232,8 @@ impl Looper {
             target_frametime.map_or(Duration::from_millis(100), |time| time * 2)
         };
 
-        self.analyzer
+        self.analyzer_state
+            .analyzer
             .recv_timeout(time)
             .map(|(pid, frametime)| FasData { pid, frametime })
     }
@@ -226,11 +244,21 @@ impl Looper {
         for pid in self.windows_watcher.topapp_pids().iter().copied() {
             let pkg = get_process_name(pid)?;
             if self.config.need_fas(&pkg) {
-                self.analyzer.attach_app(pid)?;
+                self.analyzer_state.analyzer.attach_app(pid)?;
             }
         }
 
         Ok(())
+    }
+
+    fn restart_analyzer(&mut self) {
+        if self.analyzer_state.restart_counter == 1 {
+            self.analyzer_state.restart_counter = 0;
+            self.analyzer_state.analyzer.detach_apps();
+            let _ = self.update_analyzer();
+        } else {
+            self.analyzer_state.restart_counter += 1;
+        }
     }
 
     fn do_policy(&mut self) {
