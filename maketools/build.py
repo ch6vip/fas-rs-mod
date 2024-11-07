@@ -141,6 +141,8 @@ def task(args):
 
     if release:
         cargo.arg("--release")
+        if nightly:
+            cargo.arg("-Z trim-paths")
     if verbose:
         cargo.arg("--verbose")
 
