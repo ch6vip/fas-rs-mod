@@ -94,7 +94,7 @@ core_temp_thresh = 95000
 
 [pedestal]
 margin = 1
-core_temp_thresh = disabled
+core_temp_thresh = "disabled"
 ```
 
 ## **配置合并**
