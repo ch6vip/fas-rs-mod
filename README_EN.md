@@ -1,11 +1,7 @@
-# **fas-rs**
+# **fas-rs-mod**
 
-[![简体中文][readme-cn-badge]][readme-cn-url]
+[![English][readme-cn-badge]][readme-cn-url]
 [![Stars][stars-badge]][stars-url]
-[![CI Build][ci-badge]][ci-url]
-[![Release][release-badge]][release-url]
-[![Download][download-badge]][download-url]
-[![Telegram][telegram-badge]][telegram-url]
 
 > **⚠ Warning**: This document is gpt-translated and may contain inaccuracies or errors.
 
@@ -13,14 +9,6 @@
 [readme-cn-url]: README.md
 [stars-badge]: https://img.shields.io/github/stars/shadow3aaa/fas-rs?style=for-the-badge&logo=github
 [stars-url]: https://github.com/shadow3aaa/fas-rs
-[ci-badge]: https://img.shields.io/github/actions/workflow/status/shadow3aaa/fas-rs/ci.yml?style=for-the-badge&label=CI%20Build&logo=githubactions
-[ci-url]: https://github.com/shadow3aaa/fas-rs/actions/workflows/ci.yml
-[release-badge]: https://img.shields.io/github/v/release/shadow3aaa/fas-rs?style=for-the-badge&logo=rust
-[release-url]: https://github.com/shadow3aaa/fas-rs/releases/latest
-[download-badge]: https://img.shields.io/github/downloads/shadow3aaa/fas-rs/total?style=for-the-badge&logo=download
-[download-url]: https://github.com/shadow3aaa/fas-rs/releases/latest
-[telegram-badge]: https://img.shields.io/badge/Group-blue?style=for-the-badge&logo=telegram&label=Telegram
-[telegram-url]: https://t.me/fas_rs_official
 
 ## **Introduction**
 
@@ -29,6 +17,9 @@
 - ### **What is `fas-rs`?**
 
   - `fas-rs` is an implementation of `FAS (Frame Aware Scheduling)` running in user mode. Compared with `MI FEAS` in kernel mode, it has the same core idea but has the advantages of almost universal compatibility and flexibility on any device.
+ 
+- ### **What is `fas-rs-mod`?**
+  - `fas-rs-mod` is a modified `fas-rs`, by patches `scene` 's tuner configurations，let `fas-rs` work with `scene` seamlessly.
 
 ## **Extension System**
 
@@ -46,14 +37,6 @@
     - `true`: Always keep the standard configuration profile when merging configurations, retain the local configuration application list, and other places are the same as false \*
     - `false`: see [default behavior of config merge](#config merge)
 
-  - **scene_game_list**
-
-    - Type: `bool`
-    - `true`: Use scene game list \*
-    - `false`: Not using scene game list
-
-  - `*`: default configuration
-
 - ### **Game list (`game_list`) description:**
 
   - **`"package"` = `target_fps`**
@@ -61,14 +44,14 @@
     - `package`: string, application package name
     - `target_fps`: an array (such as `[30, 60, 120, 144]`) or a single integer, indicating the target frame rate that the game will render to, `fas-rs` will dynamically match it at runtime
 
-- ### **`powersave` / `balance` / `performance` / `fast` Description:**
+- ### **`powersave` / `balance` / `performance` / `fast` / `pedestal` Description:**
 
   - #### **Mode Switching:**
 
-    - Currently, `fas-rs` lacks an official mode-switching manager, instead integrating the [`scene`](http://vtools.omarea.com) configuration interface. If you do not use scene, the default configuration is `balance`.
-    - If you have some Linux programming knowledge, you can write any of the 4 modes to the `/dev/fas_rs/mode` node to switch modes, and reading it will show the current `fas-rs` mode.
+    - `fas-rs-mod` relies on [`scene`](http://vtools.omarea.com). By patches scene's tuner configuration, let `fas-rs` work with `scene` seamlessly.
+    - If you have some understanding of programming on Linux, you can switch to the corresponding mode by writing any one of the 5 modes to the `/dev/fas_rs/mode` node, and at the same time, reading it can also know the current `fas-rs` mode
 
-  - #### **Mode Parameter Description:**
+- #### **Mode Parameter Description:**
 
     - **margin:**
 
@@ -87,36 +70,29 @@
 ```toml
 [config]
 keep_std = true
-scene_game_list = true
 
 [game_list]
-"com.hypergryph.arknights" = [30, 60]
-"com.miHoYo.Yuanshen" = [30, 60]
-"com.miHoYo.enterprise.NGHSoD" = [30, 60, 90]
-"com.miHoYo.hkrpg" = [30, 60]
-"com.kurogame.mingchao" = [24, 30, 45, 60]
-"com.pwrd.hotta.laohu" = [25, 30, 45, 60, 90]
-"com.mojang.minecraftpe" = [60, 90, 120]
-"com.netease.party" = [30, 60]
-"com.shangyoo.neon" = 60
-"com.tencent.tmgp.pubgmhd" = [60, 90, 120]
-"com.tencent.tmgp.sgame" = [30, 60, 90, 120]
+"example.game" = [30, 60, 90, 120]
 
 [powersave]
-margin = 3
+margin = 6
 core_temp_thresh = 60000
 
 [balance]
-margin = 2
+margin = 4
 core_temp_thresh = 75000
 
 [performance]
-margin = 1
+margin = 2
 core_temp_thresh = 90000
 
 [fast]
 margin = 0
 core_temp_thresh = 95000
+
+[pedestal]
+margin = 1
+core_temp_thresh = disabled
 ```
 
 ## **Configuration merge**

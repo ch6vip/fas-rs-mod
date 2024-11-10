@@ -1,24 +1,12 @@
-# **fas-rs**
+# **fas-rs-mod**
 
 [![English][readme-en-badge]][readme-en-url]
 [![Stars][stars-badge]][stars-url]
-[![CI Build][ci-badge]][ci-url]
-[![Release][release-badge]][release-url]
-[![Download][download-badge]][download-url]
-[![Telegram][telegram-badge]][telegram-url]
 
 [readme-en-badge]: https://img.shields.io/badge/README-English-blue.svg?style=for-the-badge&logo=readme
 [readme-en-url]: README_EN.md
-[stars-badge]: https://img.shields.io/github/stars/shadow3aaa/fas-rs?style=for-the-badge&logo=github
-[stars-url]: https://github.com/shadow3aaa/fas-rs
-[ci-badge]: https://img.shields.io/github/actions/workflow/status/shadow3aaa/fas-rs/ci.yml?style=for-the-badge&label=CI%20Build&logo=githubactions
-[ci-url]: https://github.com/shadow3aaa/fas-rs/actions/workflows/ci.yml
-[release-badge]: https://img.shields.io/github/v/release/shadow3aaa/fas-rs?style=for-the-badge&logo=rust
-[release-url]: https://github.com/shadow3aaa/fas-rs/releases/latest
-[download-badge]: https://img.shields.io/github/downloads/shadow3aaa/fas-rs/total?style=for-the-badge
-[download-url]: https://github.com/shadow3aaa/fas-rs/releases/latest
-[telegram-badge]: https://img.shields.io/badge/Group-blue?style=for-the-badge&logo=telegram&label=Telegram
-[telegram-url]: https://t.me/fas_rs_official
+[stars-badge]: https://img.shields.io/github/stars/DdogezD/fas-rs-mod?style=for-the-badge&logo=github
+[stars-url]: https://github.com/DdogezD/fas-rs-mod
 
 ## **简介**
 
@@ -27,6 +15,10 @@
 - ### **什么是`fas-rs`?**
 
   - `fas-rs`是运行在用户态的`FAS(Frame Aware Scheduling)`实现，对比核心思路一致但是在内核态的`MI FEAS`有着近乎在任何设备通用的兼容性和灵活性方面的优势
+
+- ### **什么是`fas-rs-mod`?**
+
+  - `fas-rs-mod`是通过修补`scene`配置文件，使`fas-rs`与`scene`一同工作的`fas-rs`修改版
 
 ## **插件系统**
 
@@ -44,12 +36,6 @@
     - `true`: 永远在配置合并时保持标准配置的 profile，保留本地配置的应用列表，其它地方和 false 相同 \*
     - `false`: 见[配置合并的默认行为](#配置合并)
 
-  - **scene_game_list**
-
-    - 类型: `bool`
-    - `true`: 使用 scene 游戏列表 \*
-    - `false`: 不使用 scene 游戏列表
-
   - `*`: 默认配置
 
 - ### **游戏列表(`game_list`)说明:**
@@ -59,16 +45,16 @@
     - `package`: 字符串，应用包名
     - `target_fps`: 一个数组(如`[30，60，120，144]`)或者单个整数，表示游戏会渲染到的目标帧率，`fas-rs`会在运行时动态匹配
 
-- ### **模式(`powersave` / `balance` / `performance` / `fast`)说明:**
+- ### **模式(`powersave` / `balance` / `performance` / `fast` / `pedestal`)说明:**
 
   - #### **模式切换:**
 
-    - 目前`fas-rs`还没有官方的切换模式的管理器，而是接入了[`scene`](http://vtools.omarea.com)的配置接口，如果你不用 scene 则默认使用`balance`的配置
-    - 如果你有在 linux 上编程的一些了解，向`/dev/fas_rs/mode`节点写入 4 模式中的任意一个即可切换到对应模式，同时读取它也可以知道现在`fas-rs`所处的模式
+    - `fas-rs-mod`依赖于[`scene`](http://vtools.omarea.com)的配置接口,通过修补scene配置文件，实现`fas-rs`与`scene`一同工作
+    - 如果你有在 linux 上编程的一些了解，向`/dev/fas_rs/mode`节点写入 5 模式中的任意一个即可切换到对应模式，同时读取它也可以知道现在`fas-rs`所处的模式
 
-  - #### **模式参数说明:**
+  - **模式参数说明:**
 
-    - **margin:**
+      - **margin:**
 
       - 类型: `整数`
       - 单位: `milliseconds`
@@ -80,41 +66,35 @@
       - `整数`: 让`fas-rs`触发温控的核心温度(单位0.001℃)
       - `"disabled"`: 关闭`fas-rs`内置温控
 
+
 ### **`games.toml`配置标准例:**
 
 ```toml
 [config]
 keep_std = true
-scene_game_list = true
 
 [game_list]
-"com.hypergryph.arknights" = [30, 60]
-"com.miHoYo.Yuanshen" = [30, 60]
-"com.miHoYo.enterprise.NGHSoD" = [30, 60, 90]
-"com.miHoYo.hkrpg" = [30, 60]
-"com.kurogame.mingchao" = [24, 30, 45, 60]
-"com.pwrd.hotta.laohu" = [25, 30, 45, 60, 90]
-"com.mojang.minecraftpe" = [60, 90, 120]
-"com.netease.party" = [30, 60]
-"com.shangyoo.neon" = 60
-"com.tencent.tmgp.pubgmhd" = [60, 90, 120]
-"com.tencent.tmgp.sgame" = [30, 60, 90, 120]
+"example.game" = [30, 60, 90, 120]
 
 [powersave]
-margin = 3
+margin = 6
 core_temp_thresh = 60000
 
 [balance]
-margin = 2
+margin = 4
 core_temp_thresh = 75000
 
 [performance]
-margin = 1
+margin = 2
 core_temp_thresh = 90000
 
 [fast]
 margin = 0
 core_temp_thresh = 95000
+
+[pedestal]
+margin = 1
+core_temp_thresh = disabled
 ```
 
 ## **配置合并**
