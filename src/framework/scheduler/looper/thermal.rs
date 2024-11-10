@@ -16,11 +16,15 @@ use std::{fs, path::PathBuf};
 
 use anyhow::Result;
 
-pub struct CpuTempWatcher {
+use crate::{framework::config::TemperatureThreshold, Config, Mode};
+
+pub struct Thermal {
+    target_fps_offset: f64,
+    core_temperature: u64,
     nodes: Vec<PathBuf>,
 }
 
-impl CpuTempWatcher {
+impl Thermal {
     pub fn new() -> Result<Self> {
         let mut nodes = Vec::new();
         for device in fs::read_dir("/sys/devices/virtual/thermal")? {
@@ -37,15 +41,37 @@ impl CpuTempWatcher {
             }
         }
 
-        Ok(Self { nodes })
+        Ok(Self {
+            target_fps_offset: 0.0,
+            core_temperature: 0,
+            nodes,
+        })
     }
 
-    pub fn temp(&self) -> u64 {
-        self.nodes
+    pub fn target_fps_offset(&mut self, config: &mut Config, mode: Mode) -> f64 {
+        let target_core_temperature = match config.mode_config(mode).core_temp_thresh {
+            TemperatureThreshold::Disabled => u64::MAX,
+            TemperatureThreshold::Temp(t) => t,
+        };
+
+        self.temperature_update();
+        if self.core_temperature > target_core_temperature {
+            self.target_fps_offset -= 0.1;
+        } else {
+            self.target_fps_offset += 0.1;
+        }
+
+        // self.target_fps_offset = self.target_fps_offset.clamp(-5.0, 0.0);
+        self.target_fps_offset
+    }
+
+    fn temperature_update(&mut self) {
+        self.core_temperature = self
+            .nodes
             .iter()
             .filter_map(|path| fs::read_to_string(path).ok())
             .map(|temp| temp.trim().parse::<u64>().unwrap_or_default())
             .max()
-            .unwrap()
+            .unwrap();
     }
 }

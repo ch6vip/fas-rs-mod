@@ -15,6 +15,7 @@
 mod buffer;
 mod clean;
 mod policy;
+mod thermal;
 mod utils;
 
 use std::time::{Duration, Instant};
@@ -24,16 +25,11 @@ use likely_stable::{likely, unlikely};
 #[cfg(debug_assertions)]
 use log::debug;
 use log::info;
-use policy::{
-    evolution::{evaluate_fitness, load_pid_params, mutate_params, open_database, Fitness},
-    pid_controll::pid_control,
-    PidParams,
-};
-use rusqlite::Connection;
+use policy::{controll::calculate_control, ControllerParams};
+use thermal::Thermal;
 
 use super::{topapp::TimedWatcher, FasData};
 use crate::{
-    cpu_temp_watcher::CpuTempWatcher,
     framework::{
         config::Config,
         error::Result,
@@ -46,48 +42,13 @@ use crate::{
 use buffer::{Buffer, BufferWorkingState};
 use clean::Cleaner;
 
+const CONTROLLER_PARAMS: ControllerParams = ControllerParams { kp: 0.0006 };
+
 #[derive(PartialEq)]
 enum State {
     NotWorking,
     Waiting,
     Working,
-}
-
-struct EvolutionState {
-    pid_params: PidParams,
-    mutated_pid_params: PidParams,
-    mutate_timer: Instant,
-    fitness: Fitness,
-}
-
-impl EvolutionState {
-    pub fn reset(&mut self, database: &Connection, pkg: &str) {
-        self.pid_params = load_pid_params(database, pkg).unwrap_or_else(|_| PidParams::default());
-        self.mutated_pid_params = self.pid_params;
-        self.fitness = Fitness::MIN;
-    }
-
-    pub fn try_evolution(
-        &mut self,
-        buffer: &Buffer,
-        cpu_temp_watcher: &CpuTempWatcher,
-        config: &mut Config,
-        mode: Mode,
-    ) {
-        if unlikely(self.mutate_timer.elapsed() > Duration::from_millis(100)) {
-            self.mutate_timer = Instant::now();
-
-            if let Some(fitness) = evaluate_fitness(buffer, cpu_temp_watcher, config, mode) {
-                if fitness > self.fitness {
-                    self.pid_params = self.mutated_pid_params;
-                }
-
-                self.fitness = fitness;
-            }
-
-            self.mutated_pid_params = mutate_params(self.pid_params);
-        }
-    }
 }
 
 struct FasState {
@@ -105,22 +66,19 @@ struct AnalyzerState {
 
 pub struct Looper {
     analyzer_state: AnalyzerState,
-    cpu_temp_watcher: CpuTempWatcher,
     config: Config,
     node: Node,
     extension: Extension,
     controller: Controller,
+    therminal: Thermal,
     windows_watcher: TimedWatcher,
     cleaner: Cleaner,
-    database: Connection,
     fas_state: FasState,
-    evolution_state: EvolutionState,
 }
 
 impl Looper {
     pub fn new(
         analyzer: Analyzer,
-        cpu_temp_watcher: CpuTempWatcher,
         config: Config,
         node: Node,
         extension: Extension,
@@ -132,25 +90,18 @@ impl Looper {
                 restart_counter: 0,
                 restart_timer: Instant::now(),
             },
-            cpu_temp_watcher,
             config,
             node,
             extension,
             controller,
+            therminal: Thermal::new().unwrap(),
             windows_watcher: TimedWatcher::new(),
             cleaner: Cleaner::new(),
-            database: open_database().unwrap(),
             fas_state: FasState {
                 mode: Mode::Balance,
                 buffer: None,
                 working_state: State::NotWorking,
                 delay_timer: Instant::now(),
-            },
-            evolution_state: EvolutionState {
-                pid_params: PidParams::default(),
-                mutated_pid_params: PidParams::default(),
-                mutate_timer: Instant::now(),
-                fitness: Fitness::MIN,
             },
         }
     }
@@ -252,18 +203,15 @@ impl Looper {
         }
 
         let control = if let Some(buffer) = &self.fas_state.buffer {
-            self.evolution_state.try_evolution(
-                buffer,
-                &self.cpu_temp_watcher,
-                &mut self.config,
-                self.fas_state.mode,
-            );
-
-            pid_control(
+            let target_fps_offset = self
+                .therminal
+                .target_fps_offset(&mut self.config, self.fas_state.mode);
+            calculate_control(
                 buffer,
                 &mut self.config,
                 self.fas_state.mode,
-                self.evolution_state.mutated_pid_params,
+                CONTROLLER_PARAMS,
+                target_fps_offset,
             )
             .unwrap_or_default()
         } else {

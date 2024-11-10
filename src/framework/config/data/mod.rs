@@ -44,6 +44,15 @@ pub struct Config {
 #[derive(Debug, Serialize, Deserialize, Clone, Copy)]
 pub struct ModeConfig {
     pub margin: u64,
+    pub core_temp_thresh: TemperatureThreshold,
+}
+
+#[derive(Debug, Serialize, Deserialize, Clone, Copy)]
+pub enum TemperatureThreshold {
+    #[serde(rename = "disabled")]
+    Disabled,
+    #[serde(untagged)]
+    Temp(u64),
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]

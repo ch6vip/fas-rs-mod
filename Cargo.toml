@@ -14,7 +14,7 @@
 
 [package]
 name = "fas-rs"
-version = "3.7.0"
+version = "3.8.0"
 edition = "2021"
 description = "Frame aware scheduling for android. Requires kernel ebpf support."
 authors = ["shadow3"]
@@ -29,7 +29,7 @@ log = "0.4.22"
 anyhow = { version  = "1.0.93", features = ["backtrace"] }
 thiserror = "2.0.0"
 inotify = { version = "0.11.0", default-features = false }
-libc = "0.2.161"
+libc = "0.2.162"
 flexi_logger = "0.29.6"
 toml = "0.8.19"
 serde = { version = "1.0.214", features = ["derive"] }
@@ -41,7 +41,6 @@ dumpsys-rs = { git = "https://github.com/shadow3aaa/dumpsys-rs" }
 mimalloc = "0.1.43"
 num_cpus = "1.16.0"
 rand = "0.8.5"
-rusqlite = { version = "0.32.1", features = ["bundled"]}
 
 [build-dependencies]
 anyhow = "1.0.93"
