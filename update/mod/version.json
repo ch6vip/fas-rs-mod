@@ -1,6 +1,6 @@
 {
-  "versionCode": 3800,
-  "version": "v3.8.0",
-  "zipUrl": "https://github.com/DdogezD/fas-rs-mod/releases/download/fas-rs-mod/fas-rs-mod-3.8.0.zip",
+  "versionCode": 3801,
+  "version": "v3.8.0_1",
+  "zipUrl": "https://github.com/DdogezD/fas-rs-mod/releases/download/fas-rs-mod/fas-rs-mod-3.8.0_fix.zip",
   "changelog": "https://github.com/DdogezD/fas-rs-mod/raw/master/update/mod/changelog.md"
 }
