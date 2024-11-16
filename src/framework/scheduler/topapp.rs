@@ -27,7 +27,9 @@ struct WindowsInfo {
 impl WindowsInfo {
     pub fn new(dump: &str) -> Self {
         let pids = Self::parse_top_app(dump);
-        let visible_freeform_window = dump.contains("freeform");
+        let visible_freeform_window = dump.contains("freeform")
+            || dump.contains("FlexibleTaskCaptionView")
+            || dump.contains("FlexibleTaskIndicatorView");
 
         Self {
             visible_freeform_window,
@@ -45,13 +47,13 @@ impl WindowsInfo {
     }
 }
 
-pub struct TimedWatcher {
+pub struct TopAppsWatcher {
     windows_dumper: Dumpsys,
     cache: WindowsInfo,
     last_refresh: Instant,
 }
 
-impl TimedWatcher {
+impl TopAppsWatcher {
     pub fn new() -> Self {
         Self {
             windows_dumper: Dumpsys::new("window").unwrap(),

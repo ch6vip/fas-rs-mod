@@ -15,7 +15,6 @@
 mod buffer;
 mod clean;
 mod policy;
-mod thermal;
 mod utils;
 
 use std::time::{Duration, Instant};
@@ -26,9 +25,8 @@ use likely_stable::{likely, unlikely};
 use log::debug;
 use log::info;
 use policy::{controll::calculate_control, ControllerParams};
-use thermal::Thermal;
 
-use super::{topapp::TimedWatcher, FasData};
+use super::{thermal::Thermal, topapp::TopAppsWatcher, FasData};
 use crate::{
     framework::{
         config::Config,
@@ -41,8 +39,6 @@ use crate::{
 
 use buffer::{Buffer, BufferWorkingState};
 use clean::Cleaner;
-
-const CONTROLLER_PARAMS: ControllerParams = ControllerParams { kp: 0.0006 };
 
 #[derive(PartialEq)]
 enum State {
@@ -64,16 +60,23 @@ struct AnalyzerState {
     restart_timer: Instant,
 }
 
+struct ControllerState {
+    controller: Controller,
+    params: ControllerParams,
+    target_fps_offset: f64,
+    adjust_timer: Instant,
+}
+
 pub struct Looper {
     analyzer_state: AnalyzerState,
     config: Config,
     node: Node,
     extension: Extension,
-    controller: Controller,
     therminal: Thermal,
-    windows_watcher: TimedWatcher,
+    windows_watcher: TopAppsWatcher,
     cleaner: Cleaner,
     fas_state: FasState,
+    controller_state: ControllerState,
 }
 
 impl Looper {
@@ -93,15 +96,20 @@ impl Looper {
             config,
             node,
             extension,
-            controller,
             therminal: Thermal::new().unwrap(),
-            windows_watcher: TimedWatcher::new(),
+            windows_watcher: TopAppsWatcher::new(),
             cleaner: Cleaner::new(),
             fas_state: FasState {
                 mode: Mode::Balance,
                 buffer: None,
                 working_state: State::NotWorking,
                 delay_timer: Instant::now(),
+            },
+            controller_state: ControllerState {
+                controller,
+                params: ControllerParams::default(),
+                target_fps_offset: 0.0,
+                adjust_timer: Instant::now(),
             },
         }
     }
@@ -121,6 +129,8 @@ impl Looper {
             }
 
             if let Some(data) = fas_data {
+                #[cfg(debug_assertions)]
+                debug!("original frametime: {:?}", data.frametime);
                 if let Some(state) = self.buffer_update(&data) {
                     match state {
                         BufferWorkingState::Usable => self.do_policy(),
@@ -156,7 +166,7 @@ impl Looper {
                 self.fas_state.mode = new_mode;
 
                 if self.fas_state.working_state == State::Working {
-                    self.controller.init_game(&self.extension);
+                    self.controller_state.controller.init_game(&self.extension);
                 }
             }
         }
@@ -210,7 +220,7 @@ impl Looper {
                 buffer,
                 &mut self.config,
                 self.fas_state.mode,
-                CONTROLLER_PARAMS,
+                &mut self.controller_state,
                 target_fps_offset,
             )
             .unwrap_or_default()
@@ -221,6 +231,6 @@ impl Looper {
         #[cfg(debug_assertions)]
         debug!("control: {control}khz");
 
-        self.controller.fas_update_freq(control);
+        self.controller_state.controller.fas_update_freq(control);
     }
 }
