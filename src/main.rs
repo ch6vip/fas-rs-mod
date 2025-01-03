@@ -117,7 +117,7 @@ fn log_format(
 
 fn log_metainfo() {
     info!(
-        "fas-rs v{} {}, llvm-{}, rustc-{}, build by {} at {} on {},{},{}. Warning: You are currently using fas-rs-mod, which is an unofficial fork of fas-rs",
+        "fas-rs v{} {}, llvm-{}, rustc-{}, build by {} at {} on {},{},{}. You are currently using fas-rs-mod, which is an unofficial fork of fas-rs.",
         env!("CARGO_PKG_VERSION"),
         build_type(),
         env!("VERGEN_RUSTC_LLVM_VERSION"),
