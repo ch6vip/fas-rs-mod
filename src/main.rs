@@ -117,16 +117,12 @@ fn log_format(
 
 fn log_metainfo() {
     info!(
-        "fas-rs v{} {}, llvm-{}, rustc-{}, build by {} at {} on {},{},{}. You are currently using fas-rs-mod, which is an unofficial fork of fas-rs.",
+        "fas-rs v{} {}, llvm-{}, rustc-{}, build at {} (Note: You are currently using fas-rs-mod, which is an unofficial fork of fas-rs)",
         env!("CARGO_PKG_VERSION"),
         build_type(),
         env!("VERGEN_RUSTC_LLVM_VERSION"),
         env!("VERGEN_RUSTC_SEMVER"),
-        env!("VERGEN_SYSINFO_USER"),
-        env!("VERGEN_BUILD_TIMESTAMP"),
-        env!("VERGEN_SYSINFO_NAME"),
-        env!("VERGEN_SYSINFO_OS_VERSION"),
-        env!("VERGEN_RUSTC_HOST_TRIPLE")
+        env!("VERGEN_BUILD_TIMESTAMP")
     );
 }
 
