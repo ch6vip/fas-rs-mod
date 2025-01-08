@@ -1,4 +1,4 @@
-# Copyright 2023-2024, shadow3 (@shadow3aaa)
+# Copyright 2023-2025, shadow3 (@shadow3aaa)
 #
 # This file is part of fas-rs.
 #
@@ -18,7 +18,3 @@
 headerPath = "NOTICES"
 includes = ["licenserc.toml", "src/**", "Cargo.toml", "build.rs", "make.py", "maketools/**", "module/**", ".github/**"]
 excludes = ["module/games.toml", "module/META-INF/**", "module/*.prop"]
-
-[properties]
-inceptionYear = 2024
-copyrightOwner = "shadow3 (@shadow3aaa)"

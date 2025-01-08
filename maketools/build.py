@@ -1,5 +1,5 @@
 #!/bin/python3
-# Copyright 2023-2024, shadow3 (@shadow3aaa)
+# Copyright 2023-2025, shadow3 (@shadow3aaa)
 #
 # This file is part of fas-rs.
 #
@@ -172,7 +172,7 @@ def task(args):
     shutil.copy2(bin, bin_module)
     tools.strip(bin_module)
 
-    build_time = datetime.now().strftime("%Y-%m-%d-%Hh%Mm%Ss")
+    build_time = datetime.utcnow().strftime("%Y-%m-%d-%Hh%Mm%Ss")
     build_type = "release" if release else "debug"
     output = Path("output") / f"fas-rs_{build_type}_{build_time}"
 

@@ -1,4 +1,4 @@
-// Copyright 2023-2024, shadow3 (@shadow3aaa)
+// Copyright 2023-2025, shadow3 (@shadow3aaa)
 //
 // This file is part of fas-rs.
 //
@@ -15,20 +15,20 @@
 // You should have received a copy of the GNU General Public License along
 // with fas-rs. If not, see <https://www.gnu.org/licenses/>.
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub enum ExtraPolicy {
     AbsRangeBound(AbsRangeBound),
     RelRangeBound(RelRangeBound),
     None,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct AbsRangeBound {
     pub min: Option<isize>,
     pub max: Option<isize>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Eq)]
 pub struct RelRangeBound {
     pub rel_to: i32,
     pub min: Option<isize>,
